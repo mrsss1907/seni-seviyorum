@@ -1,0 +1,121 @@
+import tkinter as tk
+import math
+import random
+
+# Pencere kurulumu
+root = tk.Tk()
+root.title("Aysu'ya Özel ❤️")
+root.geometry("850x650")
+root.configure(bg="#12050a")
+root.resizable(False, False)
+
+canvas = tk.Canvas(root, width=850, height=650, bg="#12050a", highlightthickness=0)
+canvas.pack()
+
+# Arka plan için ışıltılı yıldız/parçacıklar
+stars = []
+for _ in range(45):
+    sx = random.randint(20, 830)
+    sy = random.randint(20, 630)
+    sr = random.uniform(1, 2.5)
+    stars.append((sx, sy, sr, random.uniform(0, 2 * math.pi)))
+
+# Kenarlardaki çiçeklerin konumları (Sol ve Sağ kenarlar)
+flower_positions = [
+    (75, 90), (60, 220), (85, 350), (60, 480), (80, 580),      # Sol kenar
+    (775, 90), (790, 220), (765, 350), (790, 480), (770, 580), # Sağ kenar
+    (200, 65), (650, 65), (200, 585), (650, 585)               # Alt ve üst köşeler
+]
+
+def draw_flower(cx, cy, size, angle_offset, petal_color="#ff85a2", center_color="#ffd166"):
+    """Belirtilen koordinata yaprakları dönen/sallanan çiçek çizer."""
+    num_petals = 6
+    for i in range(num_petals):
+        angle = i * (2 * math.pi / num_petals) + angle_offset
+        px = cx + math.cos(angle) * size
+        py = cy + math.sin(angle) * size
+        r = size * 0.65
+        canvas.create_oval(
+            px - r, py - r, px + r, py + r,
+            fill=petal_color, outline="#ff5c8a", width=1.5, tags="dynamic"
+        )
+    # Çiçeğin ortası
+    cr = size * 0.45
+    canvas.create_oval(
+        cx - cr, cy - cr, cx + cr, cy + cr,
+        fill=center_color, outline="#f4a261", width=1.5, tags="dynamic"
+    )
+
+def get_heart_points(cx, cy, scale):
+    """Parametrik kalp denklemi ile köşe noktalarını hesaplar."""
+    points = []
+    for i in range(0, 360, 2):
+        t = math.radians(i)
+        x = 16 * (math.sin(t) ** 3)
+        y = -(13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t))
+        points.extend([cx + x * scale, cy + y * scale])
+    return points
+
+frame = 0
+def animate():
+    global frame
+    canvas.delete("dynamic")
+    
+    # 1. Arka plan ışıltılarını çiz
+    for sx, sy, sr, phase in stars:
+        brightness = int(155 + 100 * math.sin(frame * 0.08 + phase))
+        color = f"#{brightness:02x}{int(brightness*0.6):02x}{int(brightness*0.8):02x}"
+        canvas.create_oval(sx - sr, sy - sr, sx + sr, sy + sr, fill=color, outline="", tags="dynamic")
+
+    # 2. Kenardaki çiçekleri hafif salınımla çiz
+    flower_colors = ["#ff85a2", "#ffb3c6", "#ff758f", "#f4978e"]
+    for idx, (fx, fy) in enumerate(flower_positions):
+        sway = math.sin(frame * 0.05 + idx) * 0.35
+        pulse = 16 + math.sin(frame * 0.07 + idx) * 2
+        p_color = flower_colors[idx % len(flower_colors)]
+        draw_flower(fx, fy, pulse, sway, petal_color=p_color)
+
+    # 3. Kalp atışı (Nabız) efekti hesaplama
+    beat = math.sin(frame * 0.14)
+    # Gerçekçi kalp atışı için çift vuruş hissi
+    scale_base = 12.8 + (beat * 0.9) + (math.sin(frame * 0.28) * 0.4)
+
+    # Dıştan içe doğru parlayan katmanlı kalpler
+    glow_layers = [
+        (scale_base + 1.6, "#3d0714", ""),
+        (scale_base + 0.8, "#7a0e29", ""),
+        (scale_base, "#e01e37", "#ff4d6d"),
+        (scale_base - 1.5, "#ff2a55", "")
+    ]
+    
+    for sc, fill_col, out_col in glow_layers:
+        pts = get_heart_points(425, 315, sc)
+        canvas.create_polygon(pts, fill=fill_col, outline=out_col, width=2, smooth=True, tags="dynamic")
+
+    # 4. Ortadaki Mesaj (Kalple birlikte hafif büyüyüp küçülür)
+    font_size = int(21 + beat * 1.5)
+    
+    # Yazı gölgesi (okunurluğu artırmak için)
+    canvas.create_text(
+        427, 307,
+        text="SENİ ÇOK SEVİYORUM\nGÜLÜM",
+        fill="#4a0514",
+        font=("Segoe UI", font_size, "bold"),
+        justify="center",
+        tags="dynamic"
+    )
+    # Ana yazı
+    canvas.create_text(
+        425, 305,
+        text="SENİ ÇOK SEVİYORUM\nGÜLÜM",
+        fill="#ffffff",
+        font=("Segoe UI", font_size, "bold"),
+        justify="center",
+        tags="dynamic"
+    )
+
+    frame += 1
+    root.after(25, animate)
+
+animate()
+root.mainloop()
