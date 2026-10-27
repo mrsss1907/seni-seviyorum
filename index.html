@@ -1,121 +1,247 @@
-import tkinter as tk
-import math
-import random
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Seni Çok Seviyorum Gülüm ❤️</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #260713 0%, #0d0206 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .hint {
+      position: fixed;
+      bottom: 18px;
+      width: 100%;
+      text-align: center;
+      color: rgba(255, 182, 193, 0.45);
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      pointer-events: none;
+      animation: fadePulse 3s infinite;
+    }
+    @keyframes fadePulse {
+      0%, 100% { opacity: 0.25; }
+      50% { opacity: 0.75; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="hint">Ekrana dokun ✨</div>
 
-# Pencere kurulumu
-root = tk.Tk()
-root.title("Aysu'ya Özel ❤️")
-root.geometry("850x650")
-root.configure(bg="#12050a")
-root.resizable(False, False)
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
 
-canvas = tk.Canvas(root, width=850, height=650, bg="#12050a", highlightthickness=0)
-canvas.pack()
+    let width, height, minDim;
+    let frame = 0;
+    const stars = [];
+    const burstHearts = [];
+    let flowers = [];
 
-# Arka plan için ışıltılı yıldız/parçacıklar
-stars = []
-for _ in range(45):
-    sx = random.randint(20, 830)
-    sy = random.randint(20, 630)
-    sr = random.uniform(1, 2.5)
-    stars.append((sx, sy, sr, random.uniform(0, 2 * math.pi)))
+    function initScene() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      minDim = Math.min(width, height);
 
-# Kenarlardaki çiçeklerin konumları (Sol ve Sağ kenarlar)
-flower_positions = [
-    (75, 90), (60, 220), (85, 350), (60, 480), (80, 580),      # Sol kenar
-    (775, 90), (790, 220), (765, 350), (790, 480), (770, 580), # Sağ kenar
-    (200, 65), (650, 65), (200, 585), (650, 585)               # Alt ve üst köşeler
-]
+      stars.length = 0;
+      for (let i = 0; i < 65; i++) {
+        stars.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: Math.random() * 2 + 0.8,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
 
-def draw_flower(cx, cy, size, angle_offset, petal_color="#ff85a2", center_color="#ffd166"):
-    """Belirtilen koordinata yaprakları dönen/sallanan çiçek çizer."""
-    num_petals = 6
-    for i in range(num_petals):
-        angle = i * (2 * math.pi / num_petals) + angle_offset
-        px = cx + math.cos(angle) * size
-        py = cy + math.sin(angle) * size
-        r = size * 0.65
-        canvas.create_oval(
-            px - r, py - r, px + r, py + r,
-            fill=petal_color, outline="#ff5c8a", width=1.5, tags="dynamic"
-        )
-    # Çiçeğin ortası
-    cr = size * 0.45
-    canvas.create_oval(
-        cx - cr, cy - cr, cx + cr, cy + cr,
-        fill=center_color, outline="#f4a261", width=1.5, tags="dynamic"
-    )
+      const padX = Math.max(32, width * 0.08);
+      const padY = Math.max(45, height * 0.08);
+      flowers = [
+        { x: padX, y: padY },
+        { x: padX * 0.75, y: height * 0.28 },
+        { x: padX * 1.05, y: height * 0.5 },
+        { x: padX * 0.75, y: height * 0.72 },
+        { x: padX, y: height - padY },
+        { x: width - padX, y: padY },
+        { x: width - padX * 0.75, y: height * 0.28 },
+        { x: width - padX * 1.05, y: height * 0.5 },
+        { x: width - padX * 0.75, y: height * 0.72 },
+        { x: width - padX, y: height - padY },
+        { x: width * 0.3, y: padY * 0.75 },
+        { x: width * 0.7, y: padY * 0.75 },
+        { x: width * 0.3, y: height - padY * 0.75 },
+        { x: width * 0.7, y: height - padY * 0.75 }
+      ];
+    }
 
-def get_heart_points(cx, cy, scale):
-    """Parametrik kalp denklemi ile köşe noktalarını hesaplar."""
-    points = []
-    for i in range(0, 360, 2):
-        t = math.radians(i)
-        x = 16 * (math.sin(t) ** 3)
-        y = -(13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t))
-        points.extend([cx + x * scale, cy + y * scale])
-    return points
+    window.addEventListener('resize', initScene);
+    initScene();
 
-frame = 0
-def animate():
-    global frame
-    canvas.delete("dynamic")
-    
-    # 1. Arka plan ışıltılarını çiz
-    for sx, sy, sr, phase in stars:
-        brightness = int(155 + 100 * math.sin(frame * 0.08 + phase))
-        color = f"#{brightness:02x}{int(brightness*0.6):02x}{int(brightness*0.8):02x}"
-        canvas.create_oval(sx - sr, sy - sr, sx + sr, sy + sr, fill=color, outline="", tags="dynamic")
+    function spawnHearts(x, y) {
+      for (let i = 0; i < 8; i++) {
+        burstHearts.push({
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 5,
+          vy: -Math.random() * 3.5 - 1.5,
+          scale: Math.random() * 0.45 + 0.25,
+          alpha: 1,
+          color: ['#ff4d6d', '#ff85a2', '#ffb3c6', '#e01e37'][Math.floor(Math.random() * 4)]
+        });
+      }
+    }
 
-    # 2. Kenardaki çiçekleri hafif salınımla çiz
-    flower_colors = ["#ff85a2", "#ffb3c6", "#ff758f", "#f4978e"]
-    for idx, (fx, fy) in enumerate(flower_positions):
-        sway = math.sin(frame * 0.05 + idx) * 0.35
-        pulse = 16 + math.sin(frame * 0.07 + idx) * 2
-        p_color = flower_colors[idx % len(flower_colors)]
-        draw_flower(fx, fy, pulse, sway, petal_color=p_color)
+    window.addEventListener('pointerdown', (e) => {
+      spawnHearts(e.clientX, e.clientY);
+    });
 
-    # 3. Kalp atışı (Nabız) efekti hesaplama
-    beat = math.sin(frame * 0.14)
-    # Gerçekçi kalp atışı için çift vuruş hissi
-    scale_base = 12.8 + (beat * 0.9) + (math.sin(frame * 0.28) * 0.4)
+    function drawFlower(cx, cy, size, angleOffset, petalColor, centerColor) {
+      const numPetals = 6;
+      ctx.save();
+      for (let i = 0; i < numPetals; i++) {
+        const angle = i * (Math.PI * 2 / numPetals) + angleOffset;
+        const px = cx + Math.cos(angle) * size;
+        const py = cy + Math.sin(angle) * size;
+        ctx.beginPath();
+        ctx.arc(px, py, size * 0.65, 0, Math.PI * 2);
+        ctx.fillStyle = petalColor;
+        ctx.fill();
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = '#ff5c8a';
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(cx, cy, size * 0.45, 0, Math.PI * 2);
+      ctx.fillStyle = centerColor;
+      ctx.fill();
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = '#f4a261';
+      ctx.stroke();
+      ctx.restore();
+    }
 
-    # Dıştan içe doğru parlayan katmanlı kalpler
-    glow_layers = [
-        (scale_base + 1.6, "#3d0714", ""),
-        (scale_base + 0.8, "#7a0e29", ""),
-        (scale_base, "#e01e37", "#ff4d6d"),
-        (scale_base - 1.5, "#ff2a55", "")
-    ]
-    
-    for sc, fill_col, out_col in glow_layers:
-        pts = get_heart_points(425, 315, sc)
-        canvas.create_polygon(pts, fill=fill_col, outline=out_col, width=2, smooth=True, tags="dynamic")
+    function drawHeartShape(cx, cy, scale, fillStyle, strokeStyle, shadowBlur = 0) {
+      ctx.save();
+      ctx.beginPath();
+      for (let i = 0; i <= 360; i += 2) {
+        const t = (i * Math.PI) / 180;
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+        const px = cx + x * scale;
+        const py = cy + y * scale;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      if (shadowBlur > 0) {
+        ctx.shadowColor = '#ff1e56';
+        ctx.shadowBlur = shadowBlur;
+      }
+      ctx.fillStyle = fillStyle;
+      ctx.fill();
+      if (strokeStyle) {
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = strokeStyle;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
 
-    # 4. Ortadaki Mesaj (Kalple birlikte hafif büyüyüp küçülür)
-    font_size = int(21 + beat * 1.5)
-    
-    # Yazı gölgesi (okunurluğu artırmak için)
-    canvas.create_text(
-        427, 307,
-        text="SENİ ÇOK SEVİYORUM\nGÜLÜM",
-        fill="#4a0514",
-        font=("Segoe UI", font_size, "bold"),
-        justify="center",
-        tags="dynamic"
-    )
-    # Ana yazı
-    canvas.create_text(
-        425, 305,
-        text="SENİ ÇOK SEVİYORUM\nGÜLÜM",
-        fill="#ffffff",
-        font=("Segoe UI", font_size, "bold"),
-        justify="center",
-        tags="dynamic"
-    )
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
 
-    frame += 1
-    root.after(25, animate)
+      stars.forEach(s => {
+        const alpha = 0.35 + 0.55 * Math.sin(frame * 0.05 + s.phase);
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 200, 225, ${alpha})`;
+        ctx.fill();
+      });
 
-animate()
-root.mainloop()
+      const flowerColors = ['#ff85a2', '#ffb3c6', '#ff758f', '#f4978e'];
+      const baseFlowerSize = Math.max(10, Math.min(16, minDim * 0.032));
+      flowers.forEach((f, idx) => {
+        const sway = Math.sin(frame * 0.035 + idx) * 0.4;
+        const pulse = baseFlowerSize + Math.sin(frame * 0.05 + idx) * 2;
+        const pColor = flowerColors[idx % flowerColors.length];
+        drawFlower(f.x, f.y, pulse, sway, pColor, '#ffd166');
+      });
+
+      const beat = Math.sin(frame * 0.09);
+      const doubleBeat = Math.sin(frame * 0.18) * 0.35;
+      const baseScale = (minDim * 0.022) + (beat * 0.65) + doubleBeat;
+
+      const cx = width / 2;
+      const cy = height / 2 - 10;
+
+      const layers = [
+        { sc: baseScale * 1.15, fill: 'rgba(61, 7, 20, 0.7)', stroke: null, blur: 0 },
+        { sc: baseScale * 1.07, fill: 'rgba(122, 14, 41, 0.85)', stroke: null, blur: 0 },
+        { sc: baseScale, fill: '#e01e37', stroke: '#ff4d6d', blur: 30 },
+        { sc: baseScale * 0.88, fill: '#ff2a55', stroke: null, blur: 0 }
+      ];
+
+      layers.forEach(layer => {
+        drawHeartShape(cx, cy, layer.sc, layer.fill, layer.stroke, layer.blur);
+      });
+
+      const fontSize = Math.max(17, Math.min(30, minDim * 0.052)) + beat * 1.2;
+      ctx.save();
+      ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      ctx.fillStyle = '#3d0511';
+      ctx.fillText('SENİ ÇOK SEVİYORUM', cx + 2, cy - fontSize * 0.6 + 2);
+      ctx.fillText('GÜLÜM ❤️', cx + 2, cy + fontSize * 0.65 + 2);
+
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('SENİ ÇOK SEVİYORUM', cx, cy - fontSize * 0.6);
+      ctx.fillText('GÜLÜM ❤️', cx, cy + fontSize * 0.65);
+      ctx.restore();
+
+      for (let i = burstHearts.length - 1; i >= 0; i--) {
+        const bh = burstHearts[i];
+        bh.x += bh.vx;
+        bh.y += bh.vy;
+        bh.alpha -= 0.016;
+        if (bh.alpha <= 0) {
+          burstHearts.splice(i, 1);
+        } else {
+          ctx.save();
+          ctx.globalAlpha = bh.alpha;
+          drawHeartShape(bh.x, bh.y, bh.scale, bh.color, null, 8);
+          ctx.restore();
+        }
+      }
+
+      frame++;
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
